@@ -2,22 +2,22 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const vscode = require("vscode");
 const path = require("path");
-class EditorGroupProvider {
-    constructor(workspaceRoot) {
-        this.workspaceRoot = workspaceRoot;
-    }
-    getTreeItem(element) {
-        return element;
-    }
-    getChildren(element) {
-        if (!this.workspaceRoot) {
-            vscode.window.showInformationMessage('No dependency in empty workspace');
-            return Promise.resolve([]);
-        }
-        return Promise.resolve([]);
+class EditorGroupView {
+    constructor(context) {
+        const view = vscode.window.createTreeView('minimizedGroups', { treeDataProvider: editorGroupTreeDataProvider(), showCollapseAll: true });
     }
 }
-exports.EditorGroupProvider = EditorGroupProvider;
+exports.EditorGroupView = EditorGroupView;
+function editorGroupTreeDataProvider() {
+    return {
+        getChildren: (element) => {
+            return Promise.resolve([]);
+        },
+        getTreeItem: (element) => {
+            return element;
+        }
+    };
+}
 class EditorGroup extends vscode.TreeItem {
     constructor(label, version, collapsibleState) {
         super(label, collapsibleState);

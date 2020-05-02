@@ -9,21 +9,55 @@
 	"categories": [
 		"Other"
 	],
-	"activationEvents": [
-        "onCommand:vscode-editor-group-minimizer.minimize"
-	],
+	"activationEvents": ["onView:minimizedGroups"],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
 				"command": "vscode-editor-group-minimizer.minimize",
-                "title": "Minimize Editor Group"
-			}
+        "title": "Minimize Editor Group"
+      },
+      {
+        "command": "vscode-editor-group-minimizer.restore",
+        "title": "Restore",
+        "icon": {
+          "light": "resources/light/restore.svg",
+          "dark": "resources/dark/restore.svg"
+        }
+      },
+      {
+        "command": "vscode-editor-group-minimizer.remove",
+        "title": "Remove",
+        "icon": {
+          "light": "resources/light/clear.svg",
+          "dark": "resources/dark/clear.svg"
+        }
+      }
     ],
     "menus": {
       "editor/title": [
         {
           "command": "vscode-editor-group-minimizer.minimize"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "vscode-editor-group-minimizer.remove",
+          "when": "view == minimizedGroups && viewItem == editorGroup",
+          "group": "inline"
+        },
+        {
+          "command": "vscode-editor-group-minimizer.restore",
+          "when": "view == minimizedGroups && viewItem == editorGroup",
+          "group": "inline"
+        },
+        {
+          "command": "vscode-editor-group-minimizer.remove",
+          "when": "view == minimizedGroups && viewItem == editorGroup"
+        },
+        {
+          "command": "vscode-editor-group-minimizer.restore",
+          "when": "view == minimizedGroups && viewItem == editorGroup"
         }
       ]
     },

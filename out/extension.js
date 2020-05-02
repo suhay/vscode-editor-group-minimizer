@@ -1,38 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 const vscode = require("vscode");
-const editorGroupProvider_1 = require("./editorGroupProvider");
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+const editorGroupView_1 = require("./editorGroupView");
 function activate(context) {
-    // Use the console to output diagnostic information (console.log) and errors (console.error)
-    // This line of code will only be executed once when your extension is activated
-    console.log('Editor Group Minimizer is now active!');
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with registerCommand
-    // The commandId parameter must match the command field in package.json
-    let disposable = vscode.commands.registerCommand('vscode-editor-group-minimizer.minimize', (uri, group) => {
-        // The code you place here will be executed every time your command is executed
-        const minimizedDocument = vscode.workspace.textDocuments.find((doc) => {
-            return doc.uri.toString() === uri.toString();
-        });
-        const minimizedEditor = vscode.window.visibleTextEditors.find((editor) => {
-            return minimizedDocument ? editor.document.uri.toString() === minimizedDocument.uri.toString() : null;
-        });
-        // Display a message box to the user
-        vscode.window.showInformationMessage('Hello World from Editor Group Minimizer!');
-    });
-    const editorGroupProvider = new editorGroupProvider_1.EditorGroupProvider(vscode.workspace.workspaceFolders);
-    vscode.window.registerTreeDataProvider('minimizedGroups', editorGroupProvider);
-    vscode.window.createTreeView('minimizedGroups', {
-        treeDataProvider: editorGroupProvider
-    });
-    context.subscriptions.push(disposable);
+    const editorGroupTreeDataProvider = new editorGroupView_1.EditorGroupTreeDataProvider(context);
+    vscode.window.registerTreeDataProvider('minimizedGroups', editorGroupTreeDataProvider);
+    vscode.commands.registerCommand('vscode-editor-group-minimizer.minimize', group => editorGroupTreeDataProvider.minimize());
+    vscode.commands.registerCommand('vscode-editor-group-minimizer.remove', group => editorGroupTreeDataProvider.remove(group));
+    vscode.commands.registerCommand('vscode-editor-group-minimizer.restore', group => editorGroupTreeDataProvider.restore(group));
+    context.subscriptions.push(editorGroupTreeDataProvider);
 }
 exports.activate = activate;
-// this method is called when your extension is deactivated
 function deactivate() { }
 exports.deactivate = deactivate;
 //# sourceMappingURL=extension.js.map

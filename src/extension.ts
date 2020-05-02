@@ -1,48 +1,15 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
-import { EditorGroupProvider } from './editorGroupProvider';
+import { EditorGroupTreeDataProvider } from './editorGroupView';
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+  const editorGroupTreeDataProvider = new EditorGroupTreeDataProvider(context);
+  vscode.window.registerTreeDataProvider('minimizedGroups', editorGroupTreeDataProvider);
+  vscode.commands.registerCommand('vscode-editor-group-minimizer.minimize', group => editorGroupTreeDataProvider.minimize());
+  vscode.commands.registerCommand('vscode-editor-group-minimizer.remove', group => editorGroupTreeDataProvider.remove(group));
+  vscode.commands.registerCommand('vscode-editor-group-minimizer.restore', group => editorGroupTreeDataProvider.restore(group));
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Editor Group Minimizer is now active!');
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('vscode-editor-group-minimizer.minimize', (uri, group) => {
-		// The code you place here will be executed every time your command is executed
-
-    const minimizedDocument = vscode.workspace.textDocuments.find((doc) => {
-      return doc.uri.toString() === uri.toString();
-    });
-
-    const minimizedEditor = vscode.window.visibleTextEditors.find((editor) => {
-      return minimizedDocument ? editor.document.uri.toString() === minimizedDocument.uri.toString() : null;
-    });
-
-		// Display a message box to the user
-    vscode.window.showInformationMessage('Hello World from Editor Group Minimizer!');
-  });
-  
-  const editorGroupProvider = new EditorGroupProvider(vscode.workspace.workspaceFolders);
-
-  vscode.window.registerTreeDataProvider(
-    'minimizedGroups',
-    editorGroupProvider
-  );
-
-  vscode.window.createTreeView('minimizedGroups', {
-    treeDataProvider: editorGroupProvider
-  });
-
-	context.subscriptions.push(disposable);
+  context.subscriptions.push(editorGroupTreeDataProvider);
 }
 
-// this method is called when your extension is deactivated
 export function deactivate() {}
