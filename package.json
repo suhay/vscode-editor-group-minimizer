@@ -34,7 +34,7 @@
   "activationEvents": [
     "onView:minimizedGroups"
   ],
-  "main": "./out/extension.js",
+  "main": "./dist/extension",
   "contributes": {
     "commands": [
       {
