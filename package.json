@@ -12,21 +12,24 @@
     "name": "Matt Suhay",
     "email": "matthew.suhay@gmail.com"
   },
-	"displayName": "Editor Group Minimizer",
-	"description": "Minimize groups of editor tabs in VSCode",
-	"version": "1.0.0",
-	"engines": {
-		"vscode": "^1.44.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": ["onView:minimizedGroups"],
-	"main": "./out/extension.js",
-	"contributes": {
-		"commands": [
-			{
-				"command": "vscode-editor-group-minimizer.minimize",
+  "displayName": "Editor Group Minimizer",
+  "description": "Minimize groups of editor tabs in VSCode",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.44.0"
+  },
+  "publisher": "suhay",
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:minimizedGroups"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vscode-editor-group-minimizer.minimize",
         "title": "Minimize Editor Group"
       },
       {
@@ -81,26 +84,32 @@
         }
       ]
     }
-	},
-	"scripts": {
-		"vscode:prepublish": "yarn run compile",
-		"compile": "tsc -p ./",
-		"lint": "eslint src --ext ts",
-		"watch": "tsc -watch -p ./",
-		"pretest": "yarn run compile && yarn run lint",
-		"test": "node ./out/test/runTest.js"
-	},
-	"devDependencies": {
-		"@types/vscode": "^1.44.0",
-		"@types/glob": "^7.1.1",
-		"@types/mocha": "^7.0.2",
-		"@types/node": "^13.11.0",
-		"eslint": "^6.8.0",
-		"@typescript-eslint/parser": "^2.26.0",
-		"@typescript-eslint/eslint-plugin": "^2.26.0",
-		"glob": "^7.1.6",
-		"mocha": "^7.1.1",
-		"typescript": "^3.8.3",
-		"vscode-test": "^1.3.0"
-	}
+  },
+  "scripts": {
+    "vscode:prepublish": "webpack --mode production",
+    "webpack": "webpack --mode development",
+    "webpack-dev": "webpack --mode development --watch",
+    "test-compile": "tsc -p ./",
+    "compile": "tsc -p ./",
+    "lint": "eslint src --ext ts",
+    "watch": "tsc -watch -p ./",
+    "pretest": "yarn run compile && yarn run lint",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.1.1",
+    "@types/mocha": "^7.0.2",
+    "@types/node": "^13.11.0",
+    "@types/vscode": "^1.44.0",
+    "@typescript-eslint/eslint-plugin": "^2.26.0",
+    "@typescript-eslint/parser": "^2.26.0",
+    "eslint": "^6.8.0",
+    "glob": "^7.1.6",
+    "mocha": "^7.1.1",
+    "ts-loader": "^7.0.2",
+    "typescript": "^3.8.3",
+    "vscode-test": "^1.3.0",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11"
+  }
 }
