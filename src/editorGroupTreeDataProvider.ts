@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { commands, Disposable, ExtensionContext, TextEditor, window } from 'vscode';
-import { resolve } from 'dns';
+
+import { EditorGroup } from './editorGroup';
 
 export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<EditorGroup> {
 	private _onDidChangeTreeData: vscode.EventEmitter<EditorGroup | undefined> = new vscode.EventEmitter<EditorGroup | undefined>();
@@ -12,7 +12,9 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
   constructor(cont: vscode.ExtensionContext) {
     this.context = cont;
     const groups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups');
-    this.group = (groups || []).length + 1;
+    this.group = groups && groups.length > 0 
+      ? parseInt(groups[groups.length - 1].label.replace(/\D+/g, ''), 10) + 1
+      : 1;
   }
 
 	refresh(): void {
@@ -25,7 +27,8 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
 
 	getChildren(element?: EditorGroup): Thenable<EditorGroup[] | undefined> {
     if (element) {
-      const documents = (element.documents || []).map((document) => new EditorGroup(document.fileName));
+      const root = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.path : '';
+      const documents = (element.documents || []).map((document) => new EditorGroup(document.fileName.replace(`${root}/`, '')));
       return Promise.resolve(documents);
     } else {
       const groups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups');
@@ -33,11 +36,15 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
     }
   }
 
-  restore(group: EditorGroup): Thenable<vscode.TextEditor[]> {
-    return Promise.all(
-      (group.documents || []).map(async (document) => vscode.window.showTextDocument(document))
-    );
-      // .then(() => this.remove(group));
+  async restore(group: EditorGroup): Promise<void> {
+    for (const document of group.documents || []) {
+      await vscode.window.showTextDocument(document, {
+        preserveFocus: true,
+        preview: false,
+        viewColumn: (vscode.window.activeTextEditor && vscode.window.activeTextEditor.viewColumn) || 1
+      });
+    }
+    return Promise.resolve();
   }
 
   remove(group: EditorGroup): Thenable<void> {
@@ -47,15 +54,22 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
       .then(() => this.refresh());
   }
 
-  minimize(): Thenable<void> {
-    const documents = [...vscode.workspace.textDocuments];
+  async minimize(): Promise<void> {
+    const documents = [];
     const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
+    let active = vscode.window.activeTextEditor;
+
+    while (active !== undefined) {
+      documents.push(active?.document);
+      await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+      active = vscode.window.activeTextEditor;
+    }
+
     minimizedGroups.push(new EditorGroup(`Group ${this.group}`, vscode.TreeItemCollapsibleState.Collapsed, documents.filter((doc) => {
-      return doc.uri.scheme === 'file' && !doc.fileName.endsWith('tsconfig.json');
+      return doc.uri.scheme === 'file';
     })));
 
     return this.context.workspaceState.update('minimizedGroups', minimizedGroups)
-      .then(() => commands.executeCommand('workbench.action.closeAllEditors'))
       .then(() => {
         vscode.window.showInformationMessage(`Minimized as: Group ${this.group}`);
         this.group++;
@@ -63,29 +77,11 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
       });
   }
 
-  dispose() {
-    this.context.workspaceState.update('minimizedGroups', undefined);
-  }
-}
-
-class EditorGroup extends vscode.TreeItem {
-  contextValue: string;
-
-  constructor(
-    public readonly label: string,
-    public readonly collapsibleState?: vscode.TreeItemCollapsibleState,
-    public readonly documents?: vscode.TextDocument[]
-  ) {
-    super(label, collapsibleState);
-    this.contextValue = collapsibleState && documents ? 'editorGroup' : '';
+  dispose(): Thenable<void> {
+    return this.clear();
   }
 
-  get tooltip(): string {
-    return `${this.label}`;
-  }
-
-  get description(): string {
-    const des = (this.documents || []).map((document) => document.fileName);
-    return des.length > 0 ? `${des.join(', ').substr(0, 30)}...` : '';
+  clear(): Thenable<void> {
+    return this.context.workspaceState.update('minimizedGroups', undefined);
   }
 }

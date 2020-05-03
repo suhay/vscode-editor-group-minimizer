@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import { EditorGroupTreeDataProvider } from './editorGroupView';
+import { EditorGroupTreeDataProvider } from './editorGroupTreeDataProvider';
 
 export function activate(context: vscode.ExtensionContext) {
   const editorGroupTreeDataProvider = new EditorGroupTreeDataProvider(context);

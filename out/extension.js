@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const vscode = require("vscode");
-const editorGroupView_1 = require("./editorGroupView");
+const editorGroupTreeDataProvider_1 = require("./editorGroupTreeDataProvider");
 function activate(context) {
-    const editorGroupTreeDataProvider = new editorGroupView_1.EditorGroupTreeDataProvider(context);
+    const editorGroupTreeDataProvider = new editorGroupTreeDataProvider_1.EditorGroupTreeDataProvider(context);
     vscode.window.registerTreeDataProvider('minimizedGroups', editorGroupTreeDataProvider);
     vscode.commands.registerCommand('vscode-editor-group-minimizer.minimize', group => editorGroupTreeDataProvider.minimize());
     vscode.commands.registerCommand('vscode-editor-group-minimizer.remove', group => editorGroupTreeDataProvider.remove(group));

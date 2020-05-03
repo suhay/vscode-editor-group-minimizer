@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const vscode = require("vscode");
+const editorGroup_1 = require("./editorGroup");
 class EditorGroupTreeDataProvider {
     constructor(cont) {
         this._onDidChangeTreeData = new vscode.EventEmitter();
@@ -17,7 +18,9 @@ class EditorGroupTreeDataProvider {
         this.group = 1;
         this.context = cont;
         const groups = this.context.workspaceState.get('minimizedGroups');
-        this.group = (groups || []).length + 1;
+        this.group = groups && groups.length > 0
+            ? parseInt(groups[groups.length - 1].label.replace(/\D+/g, ''), 10) + 1
+            : 1;
     }
     refresh() {
         this._onDidChangeTreeData.fire();
@@ -28,7 +31,7 @@ class EditorGroupTreeDataProvider {
     getChildren(element) {
         if (element) {
             const root = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.path : '';
-            const documents = (element.documents || []).map((document) => new EditorGroup(document.fileName.replace(`${root}/`, '')));
+            const documents = (element.documents || []).map((document) => new editorGroup_1.EditorGroup(document.fileName.replace(`${root}/`, '')));
             return Promise.resolve(documents);
         }
         else {
@@ -45,6 +48,7 @@ class EditorGroupTreeDataProvider {
                     viewColumn: (vscode.window.activeTextEditor && vscode.window.activeTextEditor.viewColumn) || 1
                 });
             }
+            return Promise.resolve();
         });
     }
     remove(group) {
@@ -54,41 +58,32 @@ class EditorGroupTreeDataProvider {
             .then(() => this.refresh());
     }
     minimize() {
-        const documents = [...vscode.workspace.textDocuments];
-        const minimizedGroups = this.context.workspaceState.get('minimizedGroups') || [];
-        minimizedGroups.push(new EditorGroup(`Group ${this.group}`, vscode.TreeItemCollapsibleState.Collapsed, documents.filter((doc) => {
-            return doc.uri.scheme === 'file' && !doc.fileName.endsWith('tsconfig.json');
-        })));
-        return this.context.workspaceState.update('minimizedGroups', minimizedGroups)
-            .then(() => vscode.commands.executeCommand('workbench.action.closeAllEditors'))
-            .then(() => {
-            vscode.window.showInformationMessage(`Minimized as: Group ${this.group}`);
-            this.group++;
-            this.refresh();
+        return __awaiter(this, void 0, void 0, function* () {
+            const documents = [];
+            const minimizedGroups = this.context.workspaceState.get('minimizedGroups') || [];
+            let active = vscode.window.activeTextEditor;
+            while (active !== undefined) {
+                documents.push(active === null || active === void 0 ? void 0 : active.document);
+                yield vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+                active = vscode.window.activeTextEditor;
+            }
+            minimizedGroups.push(new editorGroup_1.EditorGroup(`Group ${this.group}`, vscode.TreeItemCollapsibleState.Collapsed, documents.filter((doc) => {
+                return doc.uri.scheme === 'file';
+            })));
+            return this.context.workspaceState.update('minimizedGroups', minimizedGroups)
+                .then(() => {
+                vscode.window.showInformationMessage(`Minimized as: Group ${this.group}`);
+                this.group++;
+                this.refresh();
+            });
         });
     }
     dispose() {
-        this.clear();
+        return this.clear();
     }
     clear() {
         return this.context.workspaceState.update('minimizedGroups', undefined);
     }
 }
 exports.EditorGroupTreeDataProvider = EditorGroupTreeDataProvider;
-class EditorGroup extends vscode.TreeItem {
-    constructor(label, collapsibleState, documents) {
-        super(label, collapsibleState);
-        this.label = label;
-        this.collapsibleState = collapsibleState;
-        this.documents = documents;
-        this.contextValue = collapsibleState && documents ? 'editorGroup' : '';
-    }
-    get tooltip() {
-        return `${this.label}`;
-    }
-    get description() {
-        const des = (this.documents || []).map((document) => document.fileName);
-        return des.length > 0 ? `${des.join(', ').substr(0, 30)}...` : '';
-    }
-}
-//# sourceMappingURL=editorGroupView.js.map
+//# sourceMappingURL=editorGroupTreeDataProvider.js.map
