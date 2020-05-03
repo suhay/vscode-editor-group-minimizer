@@ -18,6 +18,13 @@
   "engines": {
     "vscode": "^1.44.0"
   },
+  "keywords": [
+    "documents",
+    "files",
+    "open",
+    "restore",
+    "tabs"
+  ],
   "publisher": "suhay",
   "categories": [
     "Other"
