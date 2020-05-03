@@ -14,7 +14,7 @@
   },
   "displayName": "Editor Group Minimizer",
   "description": "Minimize groups of editor tabs in VSCode",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engines": {
     "vscode": "^1.44.0"
   },
