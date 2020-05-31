@@ -22,6 +22,14 @@ Quickly save a list of all open Editor tabs and place them into an easily manage
 
 ## Release Notes
 
+### 1.0.2
+
+- Bugfix
+
+### 1.0.1
+
+- Fixing packaging bug.
+
 ### 1.0.0
 
-Initial release.
+- Initial release.
