@@ -32,7 +32,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:minimizedGroups"
+    "onView:minimizedGroups",
+    "onCommand:vscode-editor-group-minimizer.minimize"
   ],
   "main": "./dist/extension",
   "contributes": {
