@@ -62,6 +62,7 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
     while (active !== undefined) {
       documents.push(active?.document);
       await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+      await vscode.commands.executeCommand('workbench.action.nextEditor');
       active = vscode.window.activeTextEditor;
     }
 
