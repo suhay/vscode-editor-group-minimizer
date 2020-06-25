@@ -22,6 +22,10 @@ Quickly save a list of all open Editor tabs and place them into an easily manage
 
 ## Release Notes
 
+### 1.0.3
+
+- [Issue #3](https://github.com/suhay/vscode-editor-group-minimizer/issues/3): Not saving all tabs
+
 ### 1.0.2
 
 - Bugfix
