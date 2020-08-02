@@ -10,7 +10,7 @@ How many times have you been working on a feature with 20 different editor tabs 
 
 ## Features
 
-Quickly save a list of all open Editor tabs and place them into an easily managed view. From there, you can see a preview of the files, restore them back into tabs, or remove the reference list from the view. 
+Quickly save a list of all open Editor tabs and place them into an easily managed view. From there, you can see a preview of the files, restore them back into tabs, rename the group for better organization, or remove the reference list from the view.
 
 > Note: This does not save or edit the files within the list. It only saves, restores, and removes the references from the view. The files will remain untouched.
 
@@ -21,6 +21,10 @@ Quickly save a list of all open Editor tabs and place them into an easily manage
  - VSCode doesn't support direct tab access via the API so options of what we can do is limited.
 
 ## Release Notes
+
+### 1.1.0
+
+- [Issue #5](https://github.com/suhay/vscode-editor-group-minimizer/issues/5): Rename minimized groups
 
 ### 1.0.3
 

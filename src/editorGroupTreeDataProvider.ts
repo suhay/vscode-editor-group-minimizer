@@ -85,4 +85,19 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
   clear(): Thenable<void> {
     return this.context.workspaceState.update('minimizedGroups', undefined);
   }
+
+  async rename(group: EditorGroup): Promise<void> {
+    return vscode.window.showInputBox()
+      .then((value) => {
+        const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
+        const oldGroup = minimizedGroups.find((mGroup) => mGroup === group);
+
+        if (oldGroup && value && value !== '') {
+          oldGroup.label = value;
+        }
+
+        return this.context.workspaceState.update('minimizedGroups', minimizedGroups);
+      })
+      .then(() => this.refresh());
+  }
 }

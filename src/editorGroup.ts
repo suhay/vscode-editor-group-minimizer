@@ -5,7 +5,7 @@ export class EditorGroup extends vscode.TreeItem {
   description: string;
 
   constructor(
-    public readonly label: string,
+    public label: string,
     public readonly collapsibleState?: vscode.TreeItemCollapsibleState,
     public readonly documents?: vscode.TextDocument[]
   ) {
