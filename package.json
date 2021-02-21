@@ -35,7 +35,7 @@
     "onView:minimizedGroups",
     "onCommand:vscode-editor-group-minimizer.minimize"
   ],
-  "main": "./out/extension",
+  "main": "./dist/extension",
   "contributes": {
     "commands": [
       {
