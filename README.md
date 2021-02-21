@@ -1,4 +1,7 @@
-# Editor Group Minimizer
+# Editor Group Minimizer for VSCode
+
+[![Visual Studio Marketplace](https://vsmarketplacebadge.apphb.com/version/suhay.vscode-editor-group-minimizer.svg)
+![Rating](https://vsmarketplacebadge.apphb.com/rating-star/suhay.vscode-editor-group-minimizer.svg)](https://marketplace.visualstudio.com/items?itemName=suhay.vscode-editor-group-minimizer)
 
 How many times have you been working on a feature with 20 different editor tabs open only to be derailed to work on a one off task or bug fix? You now have to decide:
 
@@ -19,25 +22,3 @@ Quickly save a list of all open Editor tabs and place them into an easily manage
 ## Known Issues
 
  - VSCode doesn't support direct tab access via the API so options of what we can do is limited.
-
-## Release Notes
-
-### 1.1.0
-
-- [Issue #5](https://github.com/suhay/vscode-editor-group-minimizer/issues/5): Rename minimized groups
-
-### 1.0.3
-
-- [Issue #3](https://github.com/suhay/vscode-editor-group-minimizer/issues/3): Not saving all tabs
-
-### 1.0.2
-
-- Bugfix
-
-### 1.0.1
-
-- Fixing packaging bug.
-
-### 1.0.0
-
-- Initial release.
