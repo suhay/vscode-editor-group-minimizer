@@ -14,7 +14,7 @@
   },
   "displayName": "Editor Group Minimizer",
   "description": "Minimize groups of editor tabs in VSCode",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "engines": {
     "vscode": "^1.44.0"
   },
@@ -72,7 +72,7 @@
       }
     ],
     "menus": {
-      "editor/title/context":[
+      "editor/title/context": [
         {
           "command": "vscode-editor-group-minimizer.addToGroup"
         }
