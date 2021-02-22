@@ -23,7 +23,7 @@ export class EditorGroup extends vscode.TreeItem {
 
   private get _description(): string[] {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri?.path ?? '';
-    return (this.documents || []).map(({ document }) => document.fileName.replace(`${root}/`, ''));
+    return (this.documents || []).map(({ document }) => document?.fileName.replace(`${root}/`, ''));
   }
 
   get parent(): EditorGroup | undefined {

@@ -25,7 +25,7 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
     if (element) {
       const root = vscode.workspace.workspaceFolders?.[0]?.uri?.path ?? '';
       const documents = (element.documents || []).map(({ document }) => {
-        const groupMember = new EditorGroup(document.fileName.replace(`${root}/`, ''));
+        const groupMember = new EditorGroup(document?.fileName.replace(`${root}/`, ''));
         groupMember.parent = element;
         return groupMember;
       });

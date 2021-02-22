@@ -9,7 +9,7 @@ export class EditorDocument {
     public label?: string,
   ) {
     this.viewColumn = viewColumn || vscode.ViewColumn.One;
-    this.label = label ?? document.fileName;
+    this.label = label ?? document?.fileName ?? '';
     this.contextValue = 'editorDocument';
   }
 
