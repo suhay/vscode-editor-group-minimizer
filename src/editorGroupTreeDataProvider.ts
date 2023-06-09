@@ -2,15 +2,18 @@ import * as vscode from 'vscode';
 
 import { EditorDocument } from './editorDocument';
 import { EditorGroup } from './editorGroup';
+import { ExtensionConfiguration } from './extensionConfiguration';
 
 export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<EditorGroup> {
 	private _onDidChangeTreeData: vscode.EventEmitter<EditorGroup | undefined> = new vscode.EventEmitter<EditorGroup | undefined>();
   readonly onDidChangeTreeData: vscode.Event<EditorGroup | undefined> = this._onDidChangeTreeData.event;
   
   context: vscode.ExtensionContext;
+  configuration: ExtensionConfiguration;
 
   constructor(cont: vscode.ExtensionContext) {
     this.context = cont;
+    this.configuration = new ExtensionConfiguration();
   }
 
 	refresh(): void {
@@ -65,6 +68,10 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
   }
 
   async minimize(): Promise<void> {
+    const providedLabel = this.configuration.prompt ? await vscode.window.showInputBox({
+      prompt: 'Provide group name or leave empty for default.'
+    }) : undefined;
+
     const documents: EditorDocument[] = [];
     const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
     let activeTextEditor = vscode.window.activeTextEditor;
@@ -95,7 +102,7 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
       pinnedCheck = activeTextEditor;
     }
 
-    const label = `Group ${minimizedGroups.length + 1}`;
+    const label = providedLabel && providedLabel.length ? providedLabel : `Group ${minimizedGroups.length + 1}`;
     minimizedGroups.push(new EditorGroup(
       label, 
       vscode.TreeItemCollapsibleState.Collapsed, 
