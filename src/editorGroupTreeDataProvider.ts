@@ -13,15 +13,20 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
     this.context = cont;
   }
 
-	refresh(): void {
+  public get minimizedGroups() {
+    return this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
+  }
+
+	public refresh(): void {
 		this._onDidChangeTreeData.fire(undefined);
 	}
 
-	getTreeItem(element: EditorGroup): vscode.TreeItem {
+	public getTreeItem(element: EditorGroup): vscode.TreeItem {
     return element;
   }
 
-	getChildren(element?: EditorGroup): Thenable<EditorGroup[] | undefined> {
+	public async getChildren(element?: EditorGroup): Promise<EditorGroup[] | undefined> {
+    const minimizedGroups = this.minimizedGroups;
     if (element) {
       const root = vscode.workspace.workspaceFolders?.[0]?.uri?.path ?? '';
       const documents = (element.documents || []).map(({ document }) => {
@@ -29,10 +34,9 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
         groupMember.parent = element;
         return groupMember;
       });
-      return Promise.resolve(documents);
+      return documents;
     }
     
-    const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups');
     const primed = minimizedGroups?.map((group) => {
       const documents = group.documents?.map(({ document, viewColumn }) => new EditorDocument(document, viewColumn));
       return new EditorGroup(
@@ -42,8 +46,8 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
       );
     });
   
-    return this.context.workspaceState.update('minimizedGroups', primed)
-      .then(() => primed);
+    await this.updateMinimizedGroups(primed);
+    return primed;
   }
 
   restore(group: EditorGroup) {
@@ -57,16 +61,17 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
   }
 
 
-  remove(group: EditorGroup): Thenable<void> {
-    const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
+  public async remove(group: EditorGroup): Promise<EditorGroup[]> {
+    const minimizedGroups = this.minimizedGroups;
     const remaining = minimizedGroups.filter((mGroup) => mGroup !== group);
-    return this.context.workspaceState.update('minimizedGroups', remaining)
-      .then(() => this.refresh());
+    await this.updateMinimizedGroups(remaining);
+    this.refresh();
+    return remaining;
   }
 
-  async minimize(): Promise<void> {
+  public async minimize(update?: boolean): Promise<void> {
+    const minimizedGroups = this.minimizedGroups;
     const documents: EditorDocument[] = [];
-    const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
     let activeTextEditor = vscode.window.activeTextEditor;
     let pinnedCheck = activeTextEditor;
 
@@ -95,18 +100,29 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
       pinnedCheck = activeTextEditor;
     }
 
-    const label = `Group ${minimizedGroups.length + 1}`;
-    minimizedGroups.push(new EditorGroup(
-      label, 
-      vscode.TreeItemCollapsibleState.Collapsed, 
-      documents,
-    ));
-
-    return this.context.workspaceState.update('minimizedGroups', minimizedGroups)
-      .then(() => {
-        vscode.window.showInformationMessage(`Minimized as: ${label}`);
-        this.refresh();
-      });
+    if (update) {
+      const picked = await this.pickMinimizedGroup(minimizedGroups);
+      if (picked) {
+        const updatedGroup = new EditorGroup(
+          picked.label, 
+          picked.collapsibleState, 
+          documents,
+        );
+        const minimizedGroupsUpdated = await this.remove(picked);
+        minimizedGroupsUpdated.push(updatedGroup);
+        await this.updateMinimizedGroups(minimizedGroupsUpdated);
+        vscode.window.showInformationMessage(`Minimized as: ${updatedGroup.label} (updated)`);
+      }
+    } else {
+      const length = minimizedGroups.push(new EditorGroup(
+        `Group ${minimizedGroups.length + 1}`, 
+        vscode.TreeItemCollapsibleState.Collapsed, 
+        documents,
+      ));
+      await this.updateMinimizedGroups(minimizedGroups);
+      vscode.window.showInformationMessage(`Minimized as: ${minimizedGroups[length-1].label}`);
+    }
+    this.refresh();
   }
 
   dispose(): Thenable<void> {
@@ -117,44 +133,36 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
     return this.context.workspaceState.update('minimizedGroups', undefined);
   }
 
-  rename(group: EditorGroup): Thenable<void> {
-    return vscode.window.showInputBox()
-      .then((value) => {
-        const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
-        const oldGroup = minimizedGroups.find((mGroup) => mGroup === group);
+  public async rename(group: EditorGroup): Promise<void> {
+    const minimizedGroups = this.minimizedGroups;
+    const value = await vscode.window.showInputBox();
+    const oldGroup = minimizedGroups.find((mGroup) => mGroup === group);
 
-        if (oldGroup) {
-          oldGroup.label = value || oldGroup.label;
-        }
+    if (oldGroup) {
+      oldGroup.label = value || oldGroup.label;
+    }
 
-        return this.context.workspaceState.update('minimizedGroups', minimizedGroups);
-      })
-      .then(() => this.refresh());
+    await this.updateMinimizedGroups(minimizedGroups);
+    this.refresh();
   }
 
-  addToGroup(uri: vscode.Uri): Thenable<void> {
-    const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
-
-    return vscode.window.showQuickPick(minimizedGroups)
-      .then((picked) => {
-        if (picked) {
-          return vscode.workspace.openTextDocument(uri)
-            .then((document) => {
-              if (document) {
-                picked.documents?.push(new EditorDocument(document));
-                vscode.window.showInformationMessage(`Added to ${picked.label}`);
-              }
-              picked.refresh();
-              return this.context.workspaceState.update('minimizedGroups', minimizedGroups);
-            });
-        }
-      })
-      .then(() => this.refresh());
+  public async addToGroup(uri: vscode.Uri): Promise<void> {
+    const minimizedGroups = this.minimizedGroups;
+    const picked = await this.pickMinimizedGroup(minimizedGroups);
+    if (picked) {
+      const document = await vscode.workspace.openTextDocument(uri);
+      if (document) {
+        picked.documents?.push(new EditorDocument(document));
+        vscode.window.showInformationMessage(`Added to ${picked.label}`);
+      }
+      picked.refresh();
+      await this.updateMinimizedGroups(minimizedGroups);
+    }
+    this.refresh();
   }
 
-  removeFromGroup(group: EditorGroup): Thenable<void> {
-    const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
-
+  public async removeFromGroup(group: EditorGroup): Promise<void> {
+    const minimizedGroups = this.minimizedGroups;
     if (group.parent) {
       const oldGroupIdx = minimizedGroups.findIndex((mGroup) => mGroup === group.parent);
 
@@ -174,7 +182,20 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
       }
     }
 
-    return this.context.workspaceState.update('minimizedGroups', minimizedGroups)
-      .then(() => this.refresh());
+    await this.updateMinimizedGroups(minimizedGroups);
+    this.refresh();
+  }
+
+  public async updateMinimizeGroup() {
+    return await this.minimize(true);
+  }
+
+  private async pickMinimizedGroup(minimizedGroups: EditorGroup[]) {
+    return await vscode.window.showQuickPick(minimizedGroups);
+  }
+
+  private async updateMinimizedGroups(minimizedGroups: EditorGroup[]) {
+    await this.context.workspaceState.update('minimizedGroups', minimizedGroups);
+    await vscode.commands.executeCommand('setContext', 'vscode-editor-group-minimizer.lengthMinimizedGroups', minimizedGroups.length);
   }
 }

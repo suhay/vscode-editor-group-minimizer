@@ -11,6 +11,8 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand('vscode-editor-group-minimizer.rename', group => editorGroupTreeDataProvider.rename(group));
   vscode.commands.registerCommand('vscode-editor-group-minimizer.addToGroup', uri => editorGroupTreeDataProvider.addToGroup(uri));
   vscode.commands.registerCommand('vscode-editor-group-minimizer.removeFromGroup', group => editorGroupTreeDataProvider.removeFromGroup(group));
+  vscode.commands.registerCommand('vscode-editor-group-minimizer.updateMinimizeGroup', () => editorGroupTreeDataProvider.updateMinimizeGroup());
+  vscode.commands.executeCommand('setContext', 'vscode-editor-group-minimizer.lengthMinimizedGroups', editorGroupTreeDataProvider.minimizedGroups.length);
 
   context.subscriptions.push(editorGroupTreeDataProvider);
 }
