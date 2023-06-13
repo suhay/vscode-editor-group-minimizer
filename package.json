@@ -43,6 +43,11 @@
         "title": "Minimize Editor Group"
       },
       {
+        "command": "vscode-editor-group-minimizer.updateMinimizeGroup",
+        "title": "Updated Minimized Editor Group",
+        "enablement": "vscode-editor-group-minimizer.lengthMinimizedGroups > 0"
+      },
+      {
         "command": "vscode-editor-group-minimizer.restore",
         "title": "Restore",
         "icon": {
@@ -90,6 +95,9 @@
       "editor/title": [
         {
           "command": "vscode-editor-group-minimizer.minimize"
+        },
+        {
+          "command": "vscode-editor-group-minimizer.updateMinimizeGroup"
         }
       ],
       "view/item/context": [
