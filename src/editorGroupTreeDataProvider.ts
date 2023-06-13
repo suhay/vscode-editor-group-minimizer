@@ -2,15 +2,18 @@ import * as vscode from 'vscode';
 
 import { EditorDocument } from './editorDocument';
 import { EditorGroup } from './editorGroup';
+import { ExtensionConfiguration } from './extensionConfiguration';
 
 export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<EditorGroup> {
 	private _onDidChangeTreeData: vscode.EventEmitter<EditorGroup | undefined> = new vscode.EventEmitter<EditorGroup | undefined>();
   readonly onDidChangeTreeData: vscode.Event<EditorGroup | undefined> = this._onDidChangeTreeData.event;
   
   context: vscode.ExtensionContext;
+  configuration: ExtensionConfiguration;
 
   constructor(cont: vscode.ExtensionContext) {
     this.context = cont;
+    this.configuration = new ExtensionConfiguration();
   }
 
   public get minimizedGroups() {
@@ -71,6 +74,7 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
 
   public async minimize(update?: boolean): Promise<void> {
     const minimizedGroups = this.minimizedGroups;
+
     const documents: EditorDocument[] = [];
     let activeTextEditor = vscode.window.activeTextEditor;
     let pinnedCheck = activeTextEditor;
@@ -114,13 +118,17 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
         vscode.window.showInformationMessage(`Minimized as: ${updatedGroup.label} (updated)`);
       }
     } else {
-      const length = minimizedGroups.push(new EditorGroup(
-        `Group ${minimizedGroups.length + 1}`, 
+      const providedLabel = this.configuration.prompt ? await vscode.window.showInputBox({
+        prompt: 'Provide group name or leave empty for default.'
+      }) : undefined;
+      const label = providedLabel && providedLabel.length ? providedLabel : `Group ${minimizedGroups.length + 1}`;
+      minimizedGroups.push(new EditorGroup(
+        label, 
         vscode.TreeItemCollapsibleState.Collapsed, 
         documents,
       ));
       await this.updateMinimizedGroups(minimizedGroups);
-      vscode.window.showInformationMessage(`Minimized as: ${minimizedGroups[length-1].label}`);
+      vscode.window.showInformationMessage(`Minimized as: ${label}`);
     }
     this.refresh();
   }

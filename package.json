@@ -71,6 +71,16 @@
         "title": "Remove from Group"
       }
     ],
+    "configuration": {
+      "title": "Editor Group Minimizer",
+      "properties": {
+        "editorGroupMinimizer.groupNamePrompt": {
+          "type": "boolean",
+          "default": false,
+          "description": "Prompt for the desired name of the group when minimized."
+        }
+      }
+    },
     "menus": {
       "editor/title/context": [
         {
