@@ -6,7 +6,7 @@ import { EditorGroup } from './editorGroup';
 export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<EditorGroup> {
 	private _onDidChangeTreeData: vscode.EventEmitter<EditorGroup | undefined> = new vscode.EventEmitter<EditorGroup | undefined>();
   readonly onDidChangeTreeData: vscode.Event<EditorGroup | undefined> = this._onDidChangeTreeData.event;
-  
+
   context: vscode.ExtensionContext;
 
   constructor(cont: vscode.ExtensionContext) {
@@ -31,17 +31,17 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
       });
       return Promise.resolve(documents);
     }
-    
+
     const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups');
     const primed = minimizedGroups?.map((group) => {
       const documents = group.documents?.map(({ document, viewColumn }) => new EditorDocument(document, viewColumn));
       return new EditorGroup(
-        group.label, 
-        vscode.TreeItemCollapsibleState.Collapsed, 
+        group.label,
+        vscode.TreeItemCollapsibleState.Collapsed,
         documents,
       );
     });
-  
+
     return this.context.workspaceState.update('minimizedGroups', primed)
       .then(() => primed);
   }
@@ -67,6 +67,8 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
   async minimize(): Promise<void> {
     const documents: EditorDocument[] = [];
     const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
+    await vscode.commands.executeCommand('workbench.action.openEditorAtIndex1');
+    await vscode.commands.executeCommand('workbench.files.action.focusOpenEditorsView');
     let activeTextEditor = vscode.window.activeTextEditor;
     let pinnedCheck = activeTextEditor;
 
@@ -74,10 +76,8 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
       const closingEditor = activeTextEditor;
       await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
 
-      if (!vscode.window.activeTextEditor) {
-        await vscode.commands.executeCommand('workbench.action.nextEditor');
-      }
-
+      await vscode.commands.executeCommand('workbench.action.openEditorAtIndex1');
+      await vscode.commands.executeCommand('workbench.files.action.focusOpenEditorsView');
       activeTextEditor = vscode.window.activeTextEditor;
       if (activeTextEditor === pinnedCheck) {
         break; // We may have hit a pinned editor since it didn't close
@@ -87,18 +87,13 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
         documents.push(new EditorDocument(closingEditor.document, closingEditor.viewColumn));
       }
 
-      if (!vscode.window.activeTextEditor) { // Sometimes the timing is off between opening the next editor and checking if there are more to minimize
-        await vscode.commands.executeCommand('workbench.action.nextEditor');
-        activeTextEditor = vscode.window.activeTextEditor;
-      }
-
       pinnedCheck = activeTextEditor;
     }
 
     const label = `Group ${minimizedGroups.length + 1}`;
     minimizedGroups.push(new EditorGroup(
-      label, 
-      vscode.TreeItemCollapsibleState.Collapsed, 
+      label,
+      vscode.TreeItemCollapsibleState.Collapsed,
       documents,
     ));
 
